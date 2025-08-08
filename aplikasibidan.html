@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asisten Bidan Digital</title>
+    
+    <!-- Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js untuk grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@0.378.0/dist/lucide.min.js"></script>
+
+    <!-- Custom PWA Manifest -->
+    <link id="manifest-link" rel="manifest">
+
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f0; /* Light moss green background */
+        }
+        .moss-green-bg { background-color: #556B2F; } /* Dark Olive Green / Moss Green */
+        .moss-green-text { color: #556B2F; }
+        .light-moss-bg { background-color: #8FBC8F; } /* Dark Sea Green */
+        .sidebar-icon {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-icon:hover {
+            background-color: #6B8E23; /* Olive Drab */
+        }
+        .btn-primary {
+            background-color: #556B2F;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #6B8E23;
+        }
+        .btn-secondary {
+            background-color: #8FBC8F;
+            color: #333;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #9ACD32; /* Yellow Green */
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Hide number input spinners */
+        input[type='number']::-webkit-inner-spin-button,
+        input[type='number']::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type='number'] {
+            -moz-appearance: textfield;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8FBC8F;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6B8E23;
+        }
+        /* Animation for stats */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .stat-card {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside class="moss-green-bg text-white w-20 sm:w-64 flex flex-col items-center sm:items-stretch transition-all duration-300">
+        <div class="h-20 flex items-center justify-center sm:justify-start sm:px-6">
+            <i data-lucide="heart-pulse" class="h-10 w-10"></i>
+            <span class="text-xl font-bold ml-4 hidden sm:inline">Bidan Digital</span>
+        </div>
+        <nav class="flex-1">
+            <a href="#" data-page="dashboard" class="nav-link flex items-center py-4 px-6 sidebar-icon bg-opacity-25 bg-white">
+                <i data-lucide="layout-dashboard"></i><span class="ml-4 hidden sm:inline">Dashboard</span>
+            </a>
+            <a href="#" data-page="pasien" class="nav-link flex items-center py-4 px-6 sidebar-icon">
+                <i data-lucide="users"></i><span class="ml-4 hidden sm:inline">Daftar Pasien</span>
+            </a>
+            <a href="#" data-page="kunjungan" class="nav-link flex items-center py-4 px-6 sidebar-icon">
+                <i data-lucide="clipboard-plus"></i><span class="ml-4 hidden sm:inline">Form Kunjungan Baru</span>
+            </a>
+            <a href="#" data-page="laporan" class="nav-link flex items-center py-4 px-6 sidebar-icon">
+                <i data-lucide="file-bar-chart-2"></i><span class="ml-4 hidden sm:inline">Laporan Kunjungan</span>
+            </a>
+            <a href="#" data-page="pengaturan" class="nav-link flex items-center py-4 px-6 sidebar-icon">
+                <i data-lucide="settings"></i><span class="ml-4 hidden sm:inline">Pengaturan</span>
+            </a>
+        </nav>
+        <div class="p-6 hidden sm:block">
+            <p class="text-xs text-gray-300">&copy; 2024 Asisten Bidan Digital</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white shadow-md p-4 flex justify-between items-center">
+            <h1 id="page-title" class="text-2xl font-bold moss-green-text">Dashboard</h1>
+            <div class="flex items-center space-x-4">
+                <span id="current-time" class="text-gray-600 hidden md:block"></span>
+                <button id="install-pwa-btn" class="btn-primary px-4 py-2 rounded-lg hidden">
+                    <i data-lucide="download" class="inline-block h-4 w-4 mr-2"></i>Install App
+                </button>
+            </div>
+        </header>
+
+        <div id="content" class="flex-1 overflow-x-hidden overflow-y-auto p-6 space-y-6">
+            <!-- Dashboard Page -->
+            <div id="page-dashboard" class="page">
+                <!-- Filter Section -->
+                <div class="card p-4 mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h3 class="font-semibold mb-2">Filter Data Statistik</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <select id="time-range" class="border rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="day">Hari Ini</option>
+                                    <option value="week">Minggu Ini</option>
+                                    <option value="month">Bulan Ini</option>
+                                    <option value="year">Tahun Ini</option>
+                                    <option value="all">Semua Data</option>
+                                </select>
+                                <select id="chart-type" class="border rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="income">Pemasukan</option>
+                                    <option value="patients">Jumlah Pasien</option>
+                                    <option value="visits">Jumlah Kunjungan</option>
+                                </select>
+                                <button id="apply-filter" class="btn-primary px-4 py-2 rounded-lg">Terapkan</button>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <p>Terakhir diperbarui: <span id="last-updated"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="card p-6 flex items-center stat-card">
+                        <div class="p-4 light-moss-bg rounded-full"><i data-lucide="users" class="h-8 w-8 text-white"></i></div>
+                        <div class="ml-4">
+                            <p class="text-gray-500">Total Pasien</p>
+                            <p id="stat-total-pasien" class="text-3xl font-bold">0</p>
+                            <p id="stat-new-pasien" class="text-sm text-gray-500">+0 hari ini</p>
+                        </div>
+                    </div>
+                    <div class="card p-6 flex items-center stat-card">
+                        <div class="p-4 light-moss-bg rounded-full"><i data-lucide="calendar-plus" class="h-8 w-8 text-white"></i></div>
+                        <div class="ml-4">
+                            <p class="text-gray-500">Kunjungan Hari Ini</p>
+                            <p id="stat-kunjungan-hari-ini" class="text-3xl font-bold">0</p>
+                            <p id="stat-kunjungan-trend" class="text-sm text-gray-500">0% dari kemarin</p>
+                        </div>
+                    </div>
+                    <div class="card p-6 flex items-center stat-card">
+                        <div class="p-4 light-moss-bg rounded-full"><i data-lucide="wallet" class="h-8 w-8 text-white"></i></div>
+                        <div class="ml-4">
+                            <p class="text-gray-500">Pemasukan Hari Ini</p>
+                            <p id="stat-pemasukan-hari-ini" class="text-3xl font-bold">Rp 0</p>
+                            <p id="stat-pemasukan-trend" class="text-sm text-gray-500">0% dari kemarin</p>
+                        </div>
+                    </div>
+                    <div class="card p-6 flex items-center stat-card">
+                        <div class="p-4 light-moss-bg rounded-full"><i data-lucide="calendar-check" class="h-8 w-8 text-white"></i></div>
+                        <div class="ml-4">
+                            <p class="text-gray-500">Total Kunjungan</p>
+                            <p id="stat-total-kunjungan" class="text-3xl font-bold">0</p>
+                            <p id="stat-avg-visits" class="text-sm text-gray-500">Rata-rata 0/hari</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                    <div class="card lg:col-span-2 p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Statistik Utama</h3>
+                            <div class="flex items-center space-x-2">
+                                <button id="toggle-chart-view" class="text-sm btn-secondary px-3 py-1 rounded-md">
+                                    <i data-lucide="bar-chart-2" class="h-4 w-4"></i> Ganti Tampilan
+                                </button>
+                            </div>
+                        </div>
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-4">Distribusi Usia Pasien</h3>
+                        <canvas id="ageDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Additional Stats Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-4">Waktu Kunjungan Terbanyak</h3>
+                        <canvas id="visitTimeChart"></canvas>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-4">Top 5 Keluhan Pasien</h3>
+                        <div id="top-complaints" class="space-y-2">
+                            <!-- Will be filled by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient List Page -->
+            <div id="page-pasien" class="page hidden">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Daftar Semua Pasien</h2>
+                        <div class="flex space-x-2">
+                           <input type="text" id="search-pasien" placeholder="Cari nama pasien..." class="border rounded-lg px-3 py-2">
+                           <button id="export-pasien-csv" class="btn-secondary px-4 py-2 rounded-lg flex items-center">
+                               <i data-lucide="download" class="h-4 w-4 mr-2"></i>Export CSV
+                           </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="p-3">Nama</th>
+                                    <th class="p-3">Umur</th>
+                                    <th class="p-3">Alamat</th>
+                                    <th class="p-3">Wali</th>
+                                    <th class="p-3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pasien-table-body">
+                                <!-- Patient data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Visit Form Page -->
+            <div id="page-kunjungan" class="page hidden">
+                <form id="form-kunjungan" class="card p-6 space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold">Form Kunjungan Pasien</h2>
+                        <p class="text-gray-500">Isi data pasien dan detail kunjungan.</p>
+                    </div>
+                    
+                    <!-- Patient Data Section -->
+                    <div class="border-t pt-4">
+                        <h3 class="font-semibold text-lg mb-2">Data Pasien</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="pasien-nama" class="block text-sm font-medium text-gray-700">Nama Pasien</label>
+                                <input type="text" id="pasien-nama" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="pasien-wali" class="block text-sm font-medium text-gray-700">Nama Suami/Istri/Wali</label>
+                                <input type="text" id="pasien-wali" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="pasien-dob" class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
+                                <input type="date" id="pasien-dob" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="pasien-umur" class="block text-sm font-medium text-gray-700">Umur (otomatis)</label>
+                                <input type="text" id="pasien-umur" readonly class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100">
+                            </div>
+                             <div class="md:col-span-2">
+                                <label for="pasien-alamat" class="block text-sm font-medium text-gray-700">Alamat</label>
+                                <textarea id="pasien-alamat" rows="2" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"></textarea>
+                            </div>
+                            <div>
+                                <label for="pasien-nik" class="block text-sm font-medium text-gray-700">NIK Pasien (Opsional)</label>
+                                <input type="text" id="pasien-nik" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visit Details Section -->
+                    <div class="border-t pt-4">
+                        <h3 class="font-semibold text-lg mb-2">Detail Kunjungan</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="kunjungan-keluhan" class="block text-sm font-medium text-gray-700">Keluhan Pasien</label>
+                                <textarea id="kunjungan-keluhan" rows="3" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"></textarea>
+                            </div>
+                            
+                            <!-- Dynamic Basic Checks -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Pemeriksaan Dasar</label>
+                                <div id="pemeriksaan-container" class="mt-2 space-y-2">
+                                    <!-- Default checks -->
+                                    <div class="flex items-center space-x-2">
+                                        <input type="text" value="Tensi" class="w-1/3 border-gray-300 rounded-md shadow-sm bg-gray-100" readonly>
+                                        <input type="text" placeholder="cth: 120/80 mmHg" class="flex-1 border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="text" value="Nadi" class="w-1/3 border-gray-300 rounded-md shadow-sm bg-gray-100" readonly>
+                                        <input type="text" placeholder="cth: 80 bpm" class="flex-1 border-gray-300 rounded-md shadow-sm">
+                                    </div>
+                                </div>
+                                <button type="button" id="add-pemeriksaan-btn" class="mt-2 text-sm btn-secondary px-3 py-1 rounded-md">Tambah Pemeriksaan Lain</button>
+                            </div>
+
+                             <div>
+                                <label for="kunjungan-tambahan" class="block text-sm font-medium text-gray-700">Pemeriksaan/Catatan Tambahan (Opsional)</label>
+                                <textarea id="kunjungan-tambahan" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"></textarea>
+                            </div>
+
+                            <div>
+                                <label for="kunjungan-diagnosa" class="block text-sm font-medium text-gray-700">Diagnosa</label>
+                                <textarea id="kunjungan-diagnosa" rows="2" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"></textarea>
+                            </div>
+                            
+                             <!-- Dynamic Prescriptions -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Pengobatan / Resep</label>
+                                <div id="resep-container" class="mt-2 space-y-2">
+                                    <!-- Prescriptions will be added here -->
+                                </div>
+                                <button type="button" id="add-resep-btn" class="mt-2 text-sm btn-secondary px-3 py-1 rounded-md">Tambah Obat/Tindakan</button>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="kunjungan-status" class="block text-sm font-medium text-gray-700">Opsi Perawatan</label>
+                                    <select id="kunjungan-status" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+                                        <option>Rawat Jalan</option>
+                                        <option>Rawat Inap</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="kunjungan-pembayaran" class="block text-sm font-medium text-gray-700">Nominal Pembayaran (Rp)</label>
+                                    <input type="number" id="kunjungan-pembayaran" required placeholder="Contoh: 50000" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <button type="reset" class="btn-secondary px-6 py-2 rounded-lg">Batal</button>
+                        <button type="submit" class="btn-primary px-6 py-2 rounded-lg">Simpan Kunjungan</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="page-laporan" class="page hidden">
+                 <div class="card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Laporan Semua Kunjungan</h2>
+                        <div class="flex space-x-2">
+                            <input type="text" id="search-kunjungan" placeholder="Cari nama pasien..." class="border rounded-lg px-3 py-2">
+                            <select id="filter-kunjungan" class="border rounded-lg px-3 py-2">
+                                <option value="all">Semua</option>
+                                <option value="today">Hari Ini</option>
+                                <option value="week">Minggu Ini</option>
+                                <option value="month">Bulan Ini</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Nama Pasien</th>
+                                    <th class="p-3">Keluhan</th>
+                                    <th class="p-3">Diagnosa</th>
+                                    <th class="p-3">Pembayaran</th>
+                                    <th class="p-3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laporan-table-body">
+                                <!-- Visit data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="page-pengaturan" class="page hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-4">Backup & Restore Data</h3>
+                        <p class="text-sm text-gray-600 mb-4">Simpan data Anda ke sebuah file, atau pulihkan data dari file backup.</p>
+                        <div class="flex space-x-4">
+                            <button id="backup-btn" class="btn-primary flex-1 py-2 rounded-lg">Backup Data</button>
+                            <button onclick="document.getElementById('restore-input').click()" class="btn-secondary flex-1 py-2 rounded-lg">Restore Data</button>
+                            <input type="file" id="restore-input" class="hidden" accept=".json">
+                        </div>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-red-700">Zona Berbahaya</h3>
+                        <p class="text-sm text-gray-600 mb-4">Tindakan ini akan menghapus semua data pasien dan kunjungan secara permanen.</p>
+                        <button id="reset-app-btn" class="bg-red-600 hover:bg-red-700 text-white w-full py-2 rounded-lg">Reset Aplikasi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Visit Details -->
+    <div id="visit-detail-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-40">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+                <h2 class="text-xl font-bold">Detail Kunjungan</h2>
+                <button id="close-modal-btn" class="p-1 rounded-full hover:bg-gray-100">
+                    <i data-lucide="x" class="text-gray-500 hover:text-gray-800"></i>
+                </button>
+            </div>
+            <div id="modal-content" class="p-6">
+                <!-- Content will be injected by JS -->
+            </div>
+            <div class="p-4 border-t bg-gray-50 flex justify-end">
+                <button id="print-visit-btn" class="btn-secondary px-4 py-2 rounded-lg flex items-center">
+                    <i data-lucide="printer" class="h-4 w-4 mr-2"></i>Cetak
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Generic Modal for Alerts and Confirmations -->
+    <div id="generic-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
+            <div class="p-4 border-b">
+                <h2 id="generic-modal-title" class="text-lg font-bold moss-green-text">Pemberitahuan</h2>
+            </div>
+            <div class="p-6">
+                <p id="generic-modal-message"></p>
+            </div>
+            <div id="generic-modal-footer" class="p-4 bg-gray-50 rounded-b-lg flex justify-end space-x-3">
+                <!-- Buttons will be injected here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- PWA SETUP ---
+        // Membuat manifest PWA secara dinamis
+        const manifest = {
+            "name": "Asisten Bidan Digital",
+            "short_name": "BidanDigital",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#556B2F",
+            "theme_color": "#556B2F",
+            "description": "Aplikasi manajemen pasien untuk praktik mandiri bidan.",
+            "icons": [{
+                "src": "https://placehold.co/192x192/556B2F/FFFFFF?text=BD",
+                "sizes": "192x192",
+                "type": "image/png"
+            }, {
+                "src": "https://placehold.co/512x512/556B2F/FFFFFF?text=BD",
+                "sizes": "512x512",
+                "type": "image/png"
+            }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        document.getElementById('manifest-link').href = manifestURL;
+
+        // Script untuk service worker
+        const serviceWorkerScript = `
+            const CACHE_NAME = 'bidan-digital-cache-v1';
+            const urlsToCache = ['/', '/index.html'];
+            self.addEventListener('install', event => {
+                event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+            });
+            self.addEventListener('fetch', event => {
+                event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+            });
+        `;
+        
+        // Mendaftarkan service worker jika didukung browser
+        if ('serviceWorker' in navigator) {
+            const swBlob = new Blob([serviceWorkerScript], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swUrl)
+                .then(reg => console.log('ServiceWorker registration successful.'))
+                .catch(err => console.log('ServiceWorker registration failed: ', err));
+        }
+
+        // Menangani instalasi PWA
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-pwa-btn');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+
+        installBtn.addEventListener('click', (e) => {
+            installBtn.classList.add('hidden');
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                deferredPrompt = null;
+            });
+        });
+
+        // --- APPLICATION LOGIC ---
+        const App = {
+            data: {
+                patients: [],
+                visits: []
+            },
+            charts: {},
+            currentFilter: 'day', // Default filter: hari ini
+            currentChartType: 'income', // Default chart: pemasukan
+
+            // Fungsi inisialisasi aplikasi
+            init() {
+                this.loadData();
+                this.setupEventListeners();
+                this.navigateTo('dashboard');
+                this.updateTime();
+                setInterval(this.updateTime, 1000 * 60); // Update waktu setiap menit
+                lucide.createIcons();
+            },
+
+            // Menyiapkan event listener untuk berbagai elemen UI
+            setupEventListeners() {
+                // Navigasi sidebar
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.navigateTo(e.currentTarget.dataset.page);
+                    });
+                });
+                
+                // Form kunjungan
+                document.getElementById('form-kunjungan').addEventListener('submit', this.handleVisitSubmit.bind(this));
+                document.getElementById('form-kunjungan').addEventListener('reset', this.resetVisitForm.bind(this));
+                document.getElementById('pasien-dob').addEventListener('change', this.updateAge.bind(this));
+                document.getElementById('add-pemeriksaan-btn').addEventListener('click', this.addDynamicField.bind(this, 'pemeriksaan'));
+                document.getElementById('add-resep-btn').addEventListener('click', this.addDynamicField.bind(this, 'resep'));
+                
+                // Backup & restore
+                document.getElementById('backup-btn').addEventListener('click', this.backupData.bind(this));
+                document.getElementById('restore-input').addEventListener('change', this.restoreData.bind(this));
+                document.getElementById('reset-app-btn').addEventListener('click', this.resetApp.bind(this));
+                
+                // Pencarian dan filter
+                document.getElementById('search-pasien').addEventListener('input', (e) => this.renderPatientList(e.target.value));
+                document.getElementById('search-kunjungan').addEventListener('input', (e) => this.renderReportList(e.target.value));
+                document.getElementById('filter-kunjungan').addEventListener('change', (e) => this.renderReportList());
+                
+                // Export data
+                document.getElementById('export-pasien-csv').addEventListener('click', this.exportPatientsToCSV.bind(this));
+                
+                // Modal
+                document.getElementById('close-modal-btn').addEventListener('click', () => {
+                    document.getElementById('visit-detail-modal').classList.add('hidden');
+                });
+                
+                // Filter dashboard
+                document.getElementById('apply-filter').addEventListener('click', () => {
+                    this.currentFilter = document.getElementById('time-range').value;
+                    this.currentChartType = document.getElementById('chart-type').value;
+                    this.renderDashboard();
+                });
+                
+                // Toggle tampilan chart
+                document.getElementById('toggle-chart-view').addEventListener('click', () => {
+                    if (this.charts.main) {
+                        const currentType = this.charts.main.config.type;
+                        this.charts.main.config.type = currentType === 'bar' ? 'line' : 'bar';
+                        this.charts.main.update();
+                        const icon = document.querySelector('#toggle-chart-view i');
+                        icon.setAttribute('data-lucide', currentType === 'bar' ? 'bar-chart-2' : 'line-chart');
+                        lucide.createIcons();
+                    }
+                });
+                
+                // Print visit detail
+                document.getElementById('print-visit-btn').addEventListener('click', this.printVisitDetail.bind(this));
+            },
+
+            // Menampilkan alert/pemberitahuan
+            showAlert(message, title = 'Pemberitahuan') {
+                const modal = document.getElementById('generic-modal');
+                document.getElementById('generic-modal-title').textContent = title;
+                document.getElementById('generic-modal-message').textContent = message;
+                const footer = document.getElementById('generic-modal-footer');
+                footer.innerHTML = `<button id="modal-ok-btn" class="btn-primary px-4 py-2 rounded-lg">OK</button>`;
+                
+                modal.classList.remove('hidden');
+                
+                document.getElementById('modal-ok-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                };
+            },
+
+            // Menampilkan dialog konfirmasi
+            showConfirm(message, callback, title = 'Konfirmasi') {
+                const modal = document.getElementById('generic-modal');
+                document.getElementById('generic-modal-title').textContent = title;
+                document.getElementById('generic-modal-message').textContent = message;
+                const footer = document.getElementById('generic-modal-footer');
+                footer.innerHTML = `
+                    <button id="modal-cancel-btn" class="btn-secondary px-4 py-2 rounded-lg">Batal</button>
+                    <button id="modal-confirm-btn" class="btn-primary px-4 py-2 rounded-lg">Ya</button>
+                `;
+                
+                modal.classList.remove('hidden');
+                
+                document.getElementById('modal-confirm-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                    callback(true);
+                };
+                
+                document.getElementById('modal-cancel-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                    callback(false);
+                };
+            },
+
+            // Menyimpan data ke localStorage
+            saveData() {
+                localStorage.setItem('bidanDigitalData', JSON.stringify(this.data));
+                document.getElementById('last-updated').textContent = new Date().toLocaleString('id-ID');
+            },
+
+            // Memuat data dari localStorage
+            loadData() {
+                const savedData = localStorage.getItem('bidanDigitalData');
+                if (savedData) {
+                    this.data = JSON.parse(savedData);
+                }
+                document.getElementById('last-updated').textContent = new Date().toLocaleString('id-ID');
+            },
+
+            // Navigasi antar halaman
+            navigateTo(pageId) {
+                // Sembunyikan semua halaman
+                document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+                // Tampilkan halaman yang dipilih
+                document.getElementById(`page-${pageId}`).classList.remove('hidden');
+
+                // Update active state di sidebar
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('bg-opacity-25', 'bg-white');
+                    if (link.dataset.page === pageId) {
+                        link.classList.add('bg-opacity-25', 'bg-white');
+                    }
+                });
+                
+                // Update judul halaman
+                const pageTitles = {
+                    dashboard: 'Dashboard',
+                    pasien: 'Daftar Pasien',
+                    kunjungan: 'Form Kunjungan Baru',
+                    laporan: 'Laporan Kunjungan',
+                    pengaturan: 'Pengaturan'
+                };
+                document.getElementById('page-title').textContent = pageTitles[pageId];
+
+                // Render konten halaman yang sesuai
+                switch(pageId) {
+                    case 'dashboard': this.renderDashboard(); break;
+                    case 'pasien': this.renderPatientList(); break;
+                    case 'laporan': this.renderReportList(); break;
+                    case 'kunjungan': this.resetVisitForm(); break;
+                }
+            },
+
+            // Render dashboard dengan statistik dan grafik
+            renderDashboard() {
+                const today = new Date().toISOString().slice(0, 10);
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().slice(0, 10);
+                
+                // Filter data berdasarkan rentang waktu yang dipilih
+                let filteredVisits = [];
+                let filteredPatients = [];
+                
+                switch(this.currentFilter) {
+                    case 'day':
+                        filteredVisits = this.data.visits.filter(v => v.date.startsWith(today));
+                        filteredPatients = this.data.patients.filter(p => {
+                            const patientVisits = this.data.visits.filter(v => v.patientId === p.id);
+                            return patientVisits.some(v => v.date.startsWith(today));
+                        });
+                        break;
+                    case 'week':
+                        const oneWeekAgo = new Date();
+                        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                        filteredVisits = this.data.visits.filter(v => new Date(v.date) >= oneWeekAgo);
+                        filteredPatients = this.data.patients.filter(p => {
+                            const patientVisits = this.data.visits.filter(v => v.patientId === p.id);
+                            return patientVisits.some(v => new Date(v.date) >= oneWeekAgo);
+                        });
+                        break;
+                    case 'month':
+                        const oneMonthAgo = new Date();
+                        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                        filteredVisits = this.data.visits.filter(v => new Date(v.date) >= oneMonthAgo);
+                        filteredPatients = this.data.patients.filter(p => {
+                            const patientVisits = this.data.visits.filter(v => v.patientId === p.id);
+                            return patientVisits.some(v => new Date(v.date) >= oneMonthAgo);
+                        });
+                        break;
+                    case 'year':
+                        const oneYearAgo = new Date();
+                        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                        filteredVisits = this.data.visits.filter(v => new Date(v.date) >= oneYearAgo);
+                        filteredPatients = this.data.patients.filter(p => {
+                            const patientVisits = this.data.visits.filter(v => v.patientId === p.id);
+                            return patientVisits.some(v => new Date(v.date) >= oneYearAgo);
+                        });
+                        break;
+                    case 'all':
+                        filteredVisits = [...this.data.visits];
+                        filteredPatients = [...this.data.patients];
+                        break;
+                }
+                
+                // Hitung statistik untuk hari ini
+                const visitsToday = this.data.visits.filter(v => v.date.startsWith(today));
+                const visitsYesterday = this.data.visits.filter(v => v.date.startsWith(yesterdayStr));
+                const newPatientsToday = this.data.patients.filter(p => {
+                    const patientVisits = this.data.visits.filter(v => v.patientId === p.id);
+                    return patientVisits.some(v => v.date.startsWith(today));
+                });
+                
+                // Update statistik card
+                document.getElementById('stat-total-pasien').textContent = this.data.patients.length;
+                document.getElementById('stat-new-pasien').textContent = `+${newPatientsToday.length} hari ini`;
+                document.getElementById('stat-kunjungan-hari-ini').textContent = visitsToday.length;
+                
+                // Hitung persentase perubahan dari kemarin
+                let visitTrend = 0;
+                if (visitsYesterday.length > 0) {
+                    visitTrend = Math.round(((visitsToday.length - visitsYesterday.length) / visitsYesterday.length) * 100);
+                }
+                document.getElementById('stat-kunjungan-trend').textContent = 
+                    `${visitTrend}% dari kemarin`;
+                document.getElementById('stat-kunjungan-trend').className = 
+                    `text-sm ${visitTrend >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                
+                const incomeToday = visitsToday.reduce((sum, v) => sum + (v.payment || 0), 0);
+                const incomeYesterday = visitsYesterday.reduce((sum, v) => sum + (v.payment || 0), 0);
+                let incomeTrend = 0;
+                if (incomeYesterday > 0) {
+                    incomeTrend = Math.round(((incomeToday - incomeYesterday) / incomeYesterday) * 100);
+                }
+                document.getElementById('stat-pemasukan-hari-ini').textContent = this.formatCurrency(incomeToday);
+                document.getElementById('stat-pemasukan-trend').textContent = 
+                    `${incomeTrend}% dari kemarin`;
+                document.getElementById('stat-pemasukan-trend').className = 
+                    `text-sm ${incomeTrend >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                
+                document.getElementById('stat-total-kunjungan').textContent = filteredVisits.length;
+                
+                // Hitung rata-rata kunjungan per hari
+                let avgVisits = 0;
+                if (this.data.visits.length > 0) {
+                    const firstVisitDate = new Date(this.data.visits.reduce((min, v) => v.date < min ? v.date : min, this.data.visits[0].date));
+                    const daysDiff = Math.ceil((new Date() - firstVisitDate) / (1000 * 60 * 60 * 24));
+                    avgVisits = daysDiff > 0 ? (this.data.visits.length / daysDiff).toFixed(1) : this.data.visits.length;
+                }
+                document.getElementById('stat-avg-visits').textContent = `Rata-rata ${avgVisits}/hari`;
+                
+                // Render grafik utama berdasarkan tipe yang dipilih
+                this.renderMainChart();
+                
+                // Render grafik distribusi usia
+                this.renderAgeDistributionChart();
+                
+                // Render grafik waktu kunjungan
+                this.renderVisitTimeChart();
+                
+                // Render daftar keluhan terbanyak
+                this.renderTopComplaints();
+            },
+            
+            // Render grafik utama berdasarkan tipe yang dipilih
+            renderMainChart() {
+                const ctx = document.getElementById('mainChart').getContext('2d');
+                if (this.charts.main) this.charts.main.destroy();
+                
+                let labels = [];
+                let data = [];
+                let label = '';
+                
+                // Siapkan data berdasarkan tipe grafik dan rentang waktu
+                switch(this.currentChartType) {
+                    case 'income':
+                        label = 'Pemasukan (Rp)';
+                        if (this.currentFilter === 'day') {
+                            // Per jam dalam sehari
+                            labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+                            data = Array(24).fill(0);
+                            this.data.visits.filter(v => {
+                                const visitDate = new Date(v.date);
+                                return visitDate.toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+                            }).forEach(v => {
+                                const hour = new Date(v.date).getHours();
+                                data[hour] += v.payment || 0;
+                            });
+                        } else if (this.currentFilter === 'week') {
+                            // Per hari dalam seminggu
+                            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                            labels = days;
+                            data = Array(7).fill(0);
+                            const oneWeekAgo = new Date();
+                            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                            this.data.visits.filter(v => new Date(v.date) >= oneWeekAgo).forEach(v => {
+                                const day = new Date(v.date).getDay();
+                                data[day] += v.payment || 0;
+                            });
+                        } else if (this.currentFilter === 'month') {
+                            // Per minggu dalam sebulan
+                            const weeksInMonth = Math.ceil(new Date().getDate() / 7);
+                            labels = Array.from({length: weeksInMonth}, (_, i) => `Minggu ${i+1}`);
+                            data = Array(weeksInMonth).fill(0);
+                            const oneMonthAgo = new Date();
+                            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                            this.data.visits.filter(v => new Date(v.date) >= oneMonthAgo).forEach(v => {
+                                const day = new Date(v.date).getDate();
+                                const week = Math.floor(day / 7);
+                                data[week] += v.payment || 0;
+                            });
+                        } else if (this.currentFilter === 'year') {
+                            // Per bulan dalam setahun
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                            labels = monthNames;
+                            data = Array(12).fill(0);
+                            const oneYearAgo = new Date();
+                            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                            this.data.visits.filter(v => new Date(v.date) >= oneYearAgo).forEach(v => {
+                                const month = new Date(v.date).getMonth();
+                                data[month] += v.payment || 0;
+                            });
+                        } else {
+                            // Semua data - per bulan
+                            if (this.data.visits.length > 0) {
+                                const firstVisit = new Date(this.data.visits.reduce((min, v) => v.date < min ? v.date : min, this.data.visits[0].date));
+                                const lastVisit = new Date(this.data.visits.reduce((max, v) => v.date > max ? v.date : max, this.data.visits[0].date));
+                                const monthDiff = (lastVisit.getFullYear() - firstVisit.getFullYear()) * 12 + lastVisit.getMonth() - firstVisit.getMonth() + 1;
+                                
+                                labels = Array.from({length: monthDiff}, (_, i) => {
+                                    const date = new Date(firstVisit);
+                                    date.setMonth(firstVisit.getMonth() + i);
+                                    return `${date.toLocaleString('id-ID', {month: 'short'})} ${date.getFullYear()}`;
+                                });
+                                
+                                data = Array(monthDiff).fill(0);
+                                this.data.visits.forEach(v => {
+                                    const visitDate = new Date(v.date);
+                                    const monthIndex = (visitDate.getFullYear() - firstVisit.getFullYear()) * 12 + visitDate.getMonth() - firstVisit.getMonth();
+                                    data[monthIndex] += v.payment || 0;
+                                });
+                            }
+                        }
+                        break;
+                        
+                    case 'patients':
+                        label = 'Jumlah Pasien';
+                        if (this.currentFilter === 'day') {
+                            // Per jam dalam sehari
+                            labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+                            data = Array(24).fill(0);
+                            this.data.visits.filter(v => {
+                                const visitDate = new Date(v.date);
+                                return visitDate.toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+                            }).forEach(v => {
+                                const hour = new Date(v.date).getHours();
+                                data[hour]++;
+                            });
+                        } else if (this.currentFilter === 'week') {
+                            // Per hari dalam seminggu
+                            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                            labels = days;
+                            data = Array(7).fill(0);
+                            const oneWeekAgo = new Date();
+                            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                            this.data.visits.filter(v => new Date(v.date) >= oneWeekAgo).forEach(v => {
+                                const day = new Date(v.date).getDay();
+                                data[day]++;
+                            });
+                        } else if (this.currentFilter === 'month') {
+                            // Per minggu dalam sebulan
+                            const weeksInMonth = Math.ceil(new Date().getDate() / 7);
+                            labels = Array.from({length: weeksInMonth}, (_, i) => `Minggu ${i+1}`);
+                            data = Array(weeksInMonth).fill(0);
+                            const oneMonthAgo = new Date();
+                            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                            this.data.visits.filter(v => new Date(v.date) >= oneMonthAgo).forEach(v => {
+                                const day = new Date(v.date).getDate();
+                                const week = Math.floor(day / 7);
+                                data[week]++;
+                            });
+                        } else if (this.currentFilter === 'year') {
+                            // Per bulan dalam setahun
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                            labels = monthNames;
+                            data = Array(12).fill(0);
+                            const oneYearAgo = new Date();
+                            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                            this.data.visits.filter(v => new Date(v.date) >= oneYearAgo).forEach(v => {
+                                const month = new Date(v.date).getMonth();
+                                data[month]++;
+                            });
+                        } else {
+                            // Semua data - per bulan
+                            if (this.data.visits.length > 0) {
+                                const firstVisit = new Date(this.data.visits.reduce((min, v) => v.date < min ? v.date : min, this.data.visits[0].date));
+                                const lastVisit = new Date(this.data.visits.reduce((max, v) => v.date > max ? v.date : max, this.data.visits[0].date));
+                                const monthDiff = (lastVisit.getFullYear() - firstVisit.getFullYear()) * 12 + lastVisit.getMonth() - firstVisit.getMonth() + 1;
+                                
+                                labels = Array.from({length: monthDiff}, (_, i) => {
+                                    const date = new Date(firstVisit);
+                                    date.setMonth(firstVisit.getMonth() + i);
+                                    return `${date.toLocaleString('id-ID', {month: 'short'})} ${date.getFullYear()}`;
+                                });
+                                
+                                data = Array(monthDiff).fill(0);
+                                const uniquePatientsPerMonth = {};
+                                
+                                this.data.visits.forEach(v => {
+                                    const visitDate = new Date(v.date);
+                                    const monthIndex = (visitDate.getFullYear() - firstVisit.getFullYear()) * 12 + visitDate.getMonth() - firstVisit.getMonth();
+                                    
+                                    if (!uniquePatientsPerMonth[monthIndex]) {
+                                        uniquePatientsPerMonth[monthIndex] = new Set();
+                                    }
+                                    uniquePatientsPerMonth[monthIndex].add(v.patientId);
+                                });
+                                
+                                for (const monthIndex in uniquePatientsPerMonth) {
+                                    data[monthIndex] = uniquePatientsPerMonth[monthIndex].size;
+                                }
+                            }
+                        }
+                        break;
+                        
+                    case 'visits':
+                        label = 'Jumlah Kunjungan';
+                        if (this.currentFilter === 'day') {
+                            // Per jam dalam sehari
+                            labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+                            data = Array(24).fill(0);
+                            this.data.visits.filter(v => {
+                                const visitDate = new Date(v.date);
+                                return visitDate.toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+                            }).forEach(v => {
+                                const hour = new Date(v.date).getHours();
+                                data[hour]++;
+                            });
+                        } else if (this.currentFilter === 'week') {
+                            // Per hari dalam seminggu
+                            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                            labels = days;
+                            data = Array(7).fill(0);
+                            const oneWeekAgo = new Date();
+                            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                            this.data.visits.filter(v => new Date(v.date) >= oneWeekAgo).forEach(v => {
+                                const day = new Date(v.date).getDay();
+                                data[day]++;
+                            });
+                        } else if (this.currentFilter === 'month') {
+                            // Per minggu dalam sebulan
+                            const weeksInMonth = Math.ceil(new Date().getDate() / 7);
+                            labels = Array.from({length: weeksInMonth}, (_, i) => `Minggu ${i+1}`);
+                            data = Array(weeksInMonth).fill(0);
+                            const oneMonthAgo = new Date();
+                            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                            this.data.visits.filter(v => new Date(v.date) >= oneMonthAgo).forEach(v => {
+                                const day = new Date(v.date).getDate();
+                                const week = Math.floor(day / 7);
+                                data[week]++;
+                            });
+                        } else if (this.currentFilter === 'year') {
+                            // Per bulan dalam setahun
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                            labels = monthNames;
+                            data = Array(12).fill(0);
+                            const oneYearAgo = new Date();
+                            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                            this.data.visits.filter(v => new Date(v.date) >= oneYearAgo).forEach(v => {
+                                const month = new Date(v.date).getMonth();
+                                data[month]++;
+                            });
+                        } else {
+                            // Semua data - per bulan
+                            if (this.data.visits.length > 0) {
+                                const firstVisit = new Date(this.data.visits.reduce((min, v) => v.date < min ? v.date : min, this.data.visits[0].date));
+                                const lastVisit = new Date(this.data.visits.reduce((max, v) => v.date > max ? v.date : max, this.data.visits[0].date));
+                                const monthDiff = (lastVisit.getFullYear() - firstVisit.getFullYear()) * 12 + lastVisit.getMonth() - firstVisit.getMonth() + 1;
+                                
+                                labels = Array.from({length: monthDiff}, (_, i) => {
+                                    const date = new Date(firstVisit);
+                                    date.setMonth(firstVisit.getMonth() + i);
+                                    return `${date.toLocaleString('id-ID', {month: 'short'})} ${date.getFullYear()}`;
+                                });
+                                
+                                data = Array(monthDiff).fill(0);
+                                this.data.visits.forEach(v => {
+                                    const visitDate = new Date(v.date);
+                                    const monthIndex = (visitDate.getFullYear() - firstVisit.getFullYear()) * 12 + visitDate.getMonth() - firstVisit.getMonth();
+                                    data[monthIndex]++;
+                                });
+                            }
+                        }
+                        break;
+                }
+                
+                // Buat grafik
+                this.charts.main = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            backgroundColor: '#8FBC8F',
+                            borderColor: '#556B2F',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { 
+                            y: { 
+                                beginAtZero: true, 
+                                ticks: { 
+                                    callback: (value) => this.currentChartType === 'income' ? 
+                                        this.formatCurrency(value, true) : value 
+                                } 
+                            } 
+                        },
+                        plugins: { 
+                            tooltip: { 
+                                callbacks: { 
+                                    label: (context) => {
+                                        if (this.currentChartType === 'income') {
+                                            return `${label}: ${this.formatCurrency(context.raw)}`;
+                                        } else {
+                                            return `${label}: ${context.raw}`;
+                                        }
+                                    } 
+                                } 
+                            } 
+                        }
+                    }
+                });
+            },
+
+            // Render grafik distribusi usia pasien
+            renderAgeDistributionChart() {
+                const ctx = document.getElementById('ageDistributionChart').getContext('2d');
+                if (this.charts.age) this.charts.age.destroy();
+
+                // Kelompokkan usia pasien
+                const ageGroups = { 
+                    'Bayi (0-1)': 0, 
+                    'Balita (2-5)': 0, 
+                    'Anak (6-12)': 0, 
+                    'Remaja (13-20)': 0, 
+                    'Dewasa (21-50)': 0, 
+                    'Lansia (>50)': 0 
+                };
+                
+                this.data.patients.forEach(patient => {
+                    const age = this.calculateAge(patient.dob).years;
+                    if (age <= 1) ageGroups['Bayi (0-1)']++;
+                    else if (age <= 5) ageGroups['Balita (2-5)']++;
+                    else if (age <= 12) ageGroups['Anak (6-12)']++;
+                    else if (age <= 20) ageGroups['Remaja (13-20)']++;
+                    else if (age <= 50) ageGroups['Dewasa (21-50)']++;
+                    else ageGroups['Lansia (>50)']++;
+                });
+
+                // Buat grafik donat
+                this.charts.age = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(ageGroups),
+                        datasets: [{ 
+                            data: Object.values(ageGroups), 
+                            backgroundColor: ['#556B2F', '#6B8E23', '#8FBC8F', '#9ACD32', '#ADFF2F', '#BDB76B'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { 
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            },
+            
+            // Render grafik waktu kunjungan terbanyak
+            renderVisitTimeChart() {
+                const ctx = document.getElementById('visitTimeChart').getContext('2d');
+                if (this.charts.visitTime) this.charts.visitTime.destroy();
+                
+                // Hitung kunjungan per jam
+                const hours = Array.from({length: 24}, (_, i) => i);
+                const visitsPerHour = Array(24).fill(0);
+                
+                this.data.visits.forEach(visit => {
+                    const hour = new Date(visit.date).getHours();
+                    visitsPerHour[hour]++;
+                });
+                
+                // Buat grafik
+                this.charts.visitTime = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: hours.map(h => `${h}:00`),
+                        datasets: [{
+                            label: 'Jumlah Kunjungan',
+                            data: visitsPerHour,
+                            backgroundColor: '#8FBC8F',
+                            borderColor: '#556B2F',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            },
+            
+            // Render daftar keluhan terbanyak
+            renderTopComplaints() {
+                const container = document.getElementById('top-complaints');
+                container.innerHTML = '';
+                
+                // Hitung frekuensi setiap keluhan
+                const complaintCounts = {};
+                this.data.visits.forEach(visit => {
+                    const complaints = visit.complaints.toLowerCase().split(/[,.]/).map(c => c.trim()).filter(c => c.length > 0);
+                    complaints.forEach(complaint => {
+                        if (!complaintCounts[complaint]) {
+                            complaintCounts[complaint] = 0;
+                        }
+                        complaintCounts[complaint]++;
+                    });
+                });
+                
+                // Urutkan dari yang terbanyak
+                const sortedComplaints = Object.entries(complaintCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5); // Ambil 5 teratas
+                
+                if (sortedComplaints.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500">Tidak ada data keluhan.</p>';
+                    return;
+                }
+                
+                // Tampilkan sebagai daftar
+                sortedComplaints.forEach(([complaint, count]) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center p-2 hover:bg-gray-50 rounded';
+                    item.innerHTML = `
+                        <span>${complaint.charAt(0).toUpperCase() + complaint.slice(1)}</span>
+                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">${count} kunjungan</span>
+                    `;
+                    container.appendChild(item);
+                });
+            },
+
+            // Render daftar pasien
+            renderPatientList(searchTerm = '') {
+                const tbody = document.getElementById('pasien-table-body');
+                tbody.innerHTML = '';
+                const filteredPatients = this.data.patients.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+                if (filteredPatients.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4">Tidak ada data pasien.</td></tr>`;
+                    return;
+                }
+
+                filteredPatients.forEach(patient => {
+                    const age = this.calculateAge(patient.dob);
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-50';
+                    row.innerHTML = `
+                        <td class="p-3">${patient.name}</td>
+                        <td class="p-3">${age.years} thn, ${age.months} bln</td>
+                        <td class="p-3">${patient.address}</td>
+                        <td class="p-3">${patient.guardianName}</td>
+                        <td class="p-3">
+                            <button data-patient-id="${patient.id}" class="add-visit-from-list-btn text-sm btn-primary px-3 py-1 rounded-md">Tambah Kunjungan</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                // Tambahkan event listener untuk tombol tambah kunjungan
+                document.querySelectorAll('.add-visit-from-list-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const patient = this.data.patients.find(p => p.id === e.target.dataset.patientId);
+                        this.navigateTo('kunjungan');
+                        this.fillFormWithPatientData(patient);
+                    });
+                });
+            },
+            
+            // Isi form dengan data pasien yang sudah ada
+            fillFormWithPatientData(patient) {
+                document.getElementById('pasien-nama').value = patient.name;
+                document.getElementById('pasien-wali').value = patient.guardianName;
+                document.getElementById('pasien-dob').value = patient.dob;
+                document.getElementById('pasien-alamat').value = patient.address;
+                document.getElementById('pasien-nik').value = patient.nik || '';
+                this.updateAge();
+                
+                // Buat field readonly dan beri background abu-abu
+                ['pasien-nama', 'pasien-wali', 'pasien-dob', 'pasien-alamat', 'pasien-nik'].forEach(id => {
+                    document.getElementById(id).readOnly = true;
+                    document.getElementById(id).classList.add('bg-gray-100');
+                });
+            },
+
+            // Render daftar laporan kunjungan
+            renderReportList(searchTerm = '') {
+                const tbody = document.getElementById('laporan-table-body');
+                tbody.innerHTML = '';
+                
+                // Filter berdasarkan pencarian dan rentang waktu
+                const filterValue = document.getElementById('filter-kunjungan').value;
+                let filteredVisits = [...this.data.visits];
+                
+                // Filter berdasarkan rentang waktu
+                switch(filterValue) {
+                    case 'today':
+                        const today = new Date().toISOString().slice(0, 10);
+                        filteredVisits = filteredVisits.filter(v => v.date.startsWith(today));
+                        break;
+                    case 'week':
+                        const oneWeekAgo = new Date();
+                        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                        filteredVisits = filteredVisits.filter(v => new Date(v.date) >= oneWeekAgo);
+                        break;
+                    case 'month':
+                        const oneMonthAgo = new Date();
+                        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                        filteredVisits = filteredVisits.filter(v => new Date(v.date) >= oneMonthAgo);
+                        break;
+                }
+                
+                // Filter berdasarkan pencarian
+                if (searchTerm) {
+                    filteredVisits = filteredVisits.filter(v => {
+                        const patient = this.data.patients.find(p => p.id === v.patientId);
+                        return patient && patient.name.toLowerCase().includes(searchTerm.toLowerCase());
+                    });
+                }
+                
+                // Urutkan dari yang terbaru
+                filteredVisits.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                if (filteredVisits.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4">Tidak ada data kunjungan.</td></tr>`;
+                    return;
+                }
+
+                // Tampilkan data kunjungan
+                filteredVisits.forEach(visit => {
+                    const patient = this.data.patients.find(p => p.id === visit.patientId);
+                    const row = document.createElement('tr');
+                    row.className = 'border-b hover:bg-gray-50';
+                    row.innerHTML = `
+                        <td class="p-3">${new Date(visit.date).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td>
+                        <td class="p-3">${patient ? patient.name : 'Pasien Dihapus'}</td>
+                        <td class="p-3">${visit.complaints.length > 50 ? visit.complaints.substring(0, 50) + '...' : visit.complaints}</td>
+                        <td class="p-3">${visit.diagnosis.length > 50 ? visit.diagnosis.substring(0, 50) + '...' : visit.diagnosis}</td>
+                        <td class="p-3">${this.formatCurrency(visit.payment)}</td>
+                        <td class="p-3">
+                            <button data-visit-id="${visit.id}" class="view-detail-btn text-sm btn-secondary px-3 py-1 rounded-md">Detail</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                // Tambahkan event listener untuk tombol detail
+                document.querySelectorAll('.view-detail-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.showVisitDetail(e.target.dataset.visitId));
+                });
+            },
+            
+            // Tampilkan detail kunjungan dalam modal
+            showVisitDetail(visitId) {
+                const visit = this.data.visits.find(v => v.id === visitId);
+                const patient = this.data.patients.find(p => p.id === visit.patientId);
+                if (!visit || !patient) return;
+
+                const modalContent = document.getElementById('modal-content');
+                const age = this.calculateAge(patient.dob);
+                
+                // Format pemeriksaan dasar sebagai daftar
+                const pemeriksaanHTML = visit.basicChecks.map(p => `
+                    <div class="flex justify-between py-1 border-b">
+                        <span class="font-medium">${p.label}:</span>
+                        <span>${p.value}</span>
+                    </div>
+                `).join('');
+                
+                // Format resep sebagai daftar
+                const resepHTML = visit.treatments.map(r => `
+                    <div class="flex justify-between py-1 border-b">
+                        <span class="font-medium">${r.label}:</span>
+                        <span>${r.value}</span>
+                    </div>
+                `).join('');
+
+                // Isi konten modal
+                modalContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-bold text-lg moss-green-text">Data Pasien</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                <div><span class="font-medium">Nama:</span> ${patient.name}</div>
+                                <div><span class="font-medium">Umur:</span> ${age.years} thn, ${age.months} bln</div>
+                                <div><span class="font-medium">Alamat:</span> ${patient.address}</div>
+                                <div><span class="font-medium">Wali:</span> ${patient.guardianName}</div>
+                            </div>
+                        </div>
+                        <div class="border-t pt-4">
+                            <h3 class="font-bold text-lg moss-green-text">Detail Kunjungan</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                <div><span class="font-medium">Tanggal:</span> ${new Date(visit.date).toLocaleString('id-ID')}</div>
+                                <div><span class="font-medium">Status:</span> ${visit.status}</div>
+                            </div>
+                            <div class="mt-2">
+                                <div class="font-medium">Keluhan:</div>
+                                <p class="mt-1">${visit.complaints}</p>
+                            </div>
+                            <div class="mt-2">
+                                <div class="font-medium">Diagnosa:</div>
+                                <p class="mt-1">${visit.diagnosis}</p>
+                            </div>
+                            ${visit.additionalNotes ? `
+                            <div class="mt-2">
+                                <div class="font-medium">Catatan Tambahan:</div>
+                                <p class="mt-1">${visit.additionalNotes}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="border-t pt-4">
+                            <h3 class="font-bold text-lg moss-green-text">Pemeriksaan</h3>
+                            <div class="mt-2">
+                                ${pemeriksaanHTML}
+                            </div>
+                        </div>
+                        <div class="border-t pt-4">
+                            <h3 class="font-bold text-lg moss-green-text">Pengobatan</h3>
+                            <div class="mt-2">
+                                ${resepHTML}
+                            </div>
+                        </div>
+                        <div class="border-t pt-4">
+                            <h3 class="font-bold text-lg moss-green-text">Pembayaran</h3>
+                            <p class="text-2xl font-bold mt-2">${this.formatCurrency(visit.payment)}</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Tampilkan modal
+                document.getElementById('visit-detail-modal').classList.remove('hidden');
+            },
+            
+            // Cetak detail kunjungan
+            printVisitDetail() {
+                const modalContent = document.getElementById('modal-content').cloneNode(true);
+                const printWindow = window.open('', '_blank');
+                
+                // Siapkan konten untuk dicetak
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Detail Kunjungan Pasien</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            h2 { color: #556B2F; border-bottom: 2px solid #556B2F; padding-bottom: 5px; }
+                            h3 { color: #556B2F; margin-top: 20px; }
+                            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                            .font-medium { font-weight: bold; }
+                            .mt-2 { margin-top: 10px; }
+                            .pt-4 { padding-top: 20px; }
+                            .border-t { border-top: 1px solid #ddd; }
+                            .text-2xl { font-size: 1.5rem; }
+                            @media print {
+                                body { font-size: 12pt; }
+                                .no-print { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>Detail Kunjungan Pasien</h2>
+                        ${modalContent.innerHTML}
+                        <div class="no-print" style="margin-top: 20px; text-align: center;">
+                            <button onclick="window.print()" style="padding: 8px 16px; background-color: #556B2F; color: white; border: none; border-radius: 4px; cursor: pointer;">Cetak</button>
+                            <button onclick="window.close()" style="padding: 8px 16px; background-color: #ccc; color: #333; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Tutup</button>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            },
+
+            // Handle submit form kunjungan
+            handleVisitSubmit(e) {
+                e.preventDefault();
+                const form = e.target;
+                
+                // Cek apakah pasien sudah ada atau perlu dibuat baru
+                let patientId;
+                const existingPatient = this.data.patients.find(p => 
+                    p.name.toLowerCase() === form['pasien-nama'].value.trim().toLowerCase() && 
+                    p.dob === form['pasien-dob'].value
+                );
+                
+                if (existingPatient) {
+                    patientId = existingPatient.id;
+                } else {
+                    // Buat pasien baru
+                    patientId = 'p_' + Date.now();
+                    this.data.patients.push({
+                        id: patientId, 
+                        name: form['pasien-nama'].value.trim(), 
+                        guardianName: form['pasien-wali'].value.trim(),
+                        dob: form['pasien-dob'].value, 
+                        address: form['pasien-alamat'].value.trim(), 
+                        nik: form['pasien-nik'].value.trim()
+                    });
+                }
+
+                // Kumpulkan data pemeriksaan dasar
+                const basicChecks = [];
+                document.querySelectorAll('#pemeriksaan-container > div').forEach(div => {
+                    const inputs = div.querySelectorAll('input');
+                    if (inputs.length >= 2) {
+                        const labelInput = inputs[0];
+                        const valueInput = inputs[1];
+                        const label = labelInput.readOnly ? labelInput.value : labelInput.value.trim();
+                        const value = valueInput.value.trim();
+                        if (label && value) {
+                            basicChecks.push({ label, value });
+                        }
+                    }
+                });
+                
+                // Kumpulkan data resep/tindakan
+                const treatments = [];
+                document.querySelectorAll('#resep-container .resep-item').forEach(item => {
+                    const inputs = item.querySelectorAll('input');
+                    if (inputs.length >= 2) {
+                        const label = inputs[0].value.trim();
+                        const value = inputs[1].value.trim();
+                        if (label && value) {
+                            treatments.push({ label, value });
+                        }
+                    }
+                });
+                
+                // Tambahkan kunjungan baru
+                this.data.visits.push({
+                    id: 'v_' + Date.now(), 
+                    patientId: patientId, 
+                    date: new Date().toISOString(),
+                    complaints: form['kunjungan-keluhan'].value.trim(), 
+                    basicChecks: basicChecks,
+                    additionalNotes: form['kunjungan-tambahan'].value.trim(), 
+                    diagnosis: form['kunjungan-diagnosa'].value.trim(),
+                    treatments: treatments, 
+                    status: form['kunjungan-status'].value,
+                    payment: parseFloat(form['kunjungan-pembayaran'].value) || 0
+                });
+                
+                // Simpan data dan beri feedback
+                this.saveData();
+                this.showAlert('Data kunjungan berhasil disimpan!');
+                form.reset();
+                this.navigateTo('dashboard');
+            },
+            
+            // Reset form kunjungan
+            resetVisitForm() {
+                document.getElementById('form-kunjungan').reset();
+                
+                // Hapus readonly dan background abu-abu dari field pasien
+                ['pasien-nama', 'pasien-wali', 'pasien-dob', 'pasien-alamat', 'pasien-nik'].forEach(id => {
+                    document.getElementById(id).readOnly = false;
+                    document.getElementById(id).classList.remove('bg-gray-100');
+                });
+                
+                // Hapus field pemeriksaan dinamis
+                document.querySelectorAll('#pemeriksaan-container .dynamic-field').forEach(el => el.remove());
+                
+                // Kosongkan container resep
+                document.getElementById('resep-container').innerHTML = '';
+            },
+
+            // Update umur otomatis berdasarkan tanggal lahir
+            updateAge() {
+                const dobInput = document.getElementById('pasien-dob');
+                const umurInput = document.getElementById('pasien-umur');
+                if (dobInput.value) {
+                    const age = this.calculateAge(dobInput.value);
+                    umurInput.value = `${age.years} tahun, ${age.months} bulan, ${age.days} hari`;
+                } else {
+                    umurInput.value = '';
+                }
+            },
+
+            // Hitung umur berdasarkan tanggal lahir
+            calculateAge(dobString) {
+                if (!dobString) return { years: 0, months: 0, days: 0 };
+                const birthDate = new Date(dobString);
+                const today = new Date();
+                
+                let years = today.getFullYear() - birthDate.getFullYear();
+                let months = today.getMonth() - birthDate.getMonth();
+                let days = today.getDate() - birthDate.getDate();
+                
+                // Koreksi jika hari lahir belum tiba bulan ini
+                if (days < 0) {
+                    months--;
+                    days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+                }
+                
+                // Koreksi jika bulan lahir belum tiba tahun ini
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+                
+                return { years, months, days };
+            },
+            
+            // Tambahkan field dinamis untuk pemeriksaan atau resep
+            addDynamicField(type) {
+                const container = document.getElementById(type === 'pemeriksaan' ? 'pemeriksaan-container' : 'resep-container');
+                const div = document.createElement('div');
+                div.className = `flex items-center space-x-2 ${type === 'pemeriksaan' ? 'dynamic-field' : 'resep-item'}`;
+                
+                // Tentukan placeholder berdasarkan tipe field
+                const placeholder1 = type === 'pemeriksaan' ? 'Nama Pemeriksaan' : 'Nama Obat/Tindakan';
+                const placeholder2 = type === 'pemeriksaan' ? 'Hasil' : 'Dosis/Keterangan';
+
+                div.innerHTML = `
+                    <input type="text" placeholder="${placeholder1}" class="w-1/3 border-gray-300 rounded-md shadow-sm">
+                    <input type="text" placeholder="${placeholder2}" class="flex-1 border-gray-300 rounded-md shadow-sm">
+                    <button type="button" class="remove-field-btn text-red-500 hover:text-red-700 p-1 rounded-full">&times;</button>
+                `;
+                
+                // Tambahkan event listener untuk tombol hapus
+                div.querySelector('.remove-field-btn').addEventListener('click', () => div.remove());
+                container.appendChild(div);
+            },
+            
+            // Backup data ke file JSON
+            backupData() {
+                if (this.data.patients.length === 0 && this.data.visits.length === 0) {
+                    this.showAlert('Tidak ada data untuk di-backup.');
+                    return;
+                }
+                
+                // Buat blob dari data JSON
+                const dataStr = JSON.stringify(this.data, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                // Buat link download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `backup-bidan-digital-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                
+                // Bersihkan URL object
+                URL.revokeObjectURL(url);
+            },
+
+            // Restore data dari file backup
+            restoreData(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const restoredData = JSON.parse(event.target.result);
+                        
+                        // Validasi struktur data
+                        if (restoredData.patients && restoredData.visits) {
+                            // Konfirmasi sebelum restore
+                            this.showConfirm('Anda yakin ingin me-restore data? Data saat ini akan ditimpa.', (isConfirmed) => {
+                                if (isConfirmed) {
+                                    this.data = restoredData;
+                                    this.saveData();
+                                    this.showAlert('Data berhasil dipulihkan! Aplikasi akan dimuat ulang.');
+                                    setTimeout(() => location.reload(), 2000);
+                                }
+                            });
+                        } else {
+                            this.showAlert('File backup tidak valid.', 'Gagal Restore');
+                        }
+                    } catch (error) {
+                        this.showAlert('Gagal membaca file backup. Pastikan file dalam format JSON yang benar.', 'Gagal Restore');
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = ''; // Reset input file
+            },
+            
+            // Export data pasien ke CSV
+            exportPatientsToCSV() {
+                if (this.data.patients.length === 0) {
+                    this.showAlert('Tidak ada data pasien untuk diexport.');
+                    return;
+                }
+                
+                // Header CSV
+                const headers = ["ID", "Nama", "Tanggal Lahir", "Alamat", "Nama Wali", "NIK"];
+                let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\r\n";
+                
+                // Data pasien
+                this.data.patients.forEach(p => {
+                    const row = [
+                        p.id, 
+                        `"${p.name}"`, 
+                        p.dob, 
+                        `"${p.address}"`, 
+                        `"${p.guardianName}"`, 
+                        `'${p.nik || ''}'`
+                    ];
+                    csvContent += row.join(",") + "\r\n";
+                });
+                
+                // Buat link download
+                const link = document.createElement("a");
+                link.setAttribute("href", encodeURI(csvContent));
+                link.setAttribute("download", `daftar-pasien-${new Date().toISOString().slice(0, 10)}.csv`);
+                link.click();
+            },
+
+            // Reset aplikasi (hapus semua data)
+            resetApp() {
+                // Konfirmasi dua kali untuk menghindari kesalahan
+                this.showConfirm('PERINGATAN! Anda yakin ingin menghapus SEMUA data? Tindakan ini tidak dapat dibatalkan.', (isConfirmed1) => {
+                    if (isConfirmed1) {
+                        this.showConfirm('Konfirmasi sekali lagi. Apakah Anda benar-benar yakin ingin mereset aplikasi?', (isConfirmed2) => {
+                            if (isConfirmed2) {
+                                localStorage.removeItem('bidanDigitalData');
+                                this.showAlert('Aplikasi telah direset. Semua data telah dihapus.');
+                                setTimeout(() => location.reload(), 2000);
+                            }
+                        }, 'Konfirmasi Final');
+                    }
+                }, 'Peringatan');
+            },
+
+            // Format mata uang (Rupiah)
+            formatCurrency(amount, compact = false) {
+                if (compact && amount >= 1000000) return `Rp ${(amount / 1000000).toFixed(1)}jt`;
+                if (compact && amount >= 1000) return `Rp ${(amount / 1000).toFixed(0)}rb`;
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+            },
+            
+            // Update waktu saat ini
+            updateTime() {
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                };
+                document.getElementById('current-time').textContent = new Date().toLocaleDateString('id-ID', options);
+            }
+        };
+
+        // Inisialisasi aplikasi
+        App.init();
+    });
+    </script>
+</body>
+</html>
